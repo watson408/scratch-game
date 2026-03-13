@@ -3,23 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>刮刮乐小游戏</title>
+  <title>刮刮乐小游戏 - 升级版</title>
   <style>
     :root {
       --yellow: #ffd84d;
       --yellow-strong: #ffcd1a;
+      --yellow-dark: #e6b800;
       --white: #ffffff;
       --text: #222;
-      --success: #0f9d58;
-      --fail: #c0392b;
+      --badge-bg: rgba(255, 255, 255, 0.85); /* 半透明白 */
+      --badge-text: #5b4100;
+      --badge-border: rgba(255, 255, 255, 0.9);
+      --badge-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     * { box-sizing: border-box; }
+    
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+      font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
       color: var(--text);
-      background: radial-gradient( circle at 20% 20%, #fff7cc, #fff),
+      background: radial-gradient(circle at 20% 20%, #fff7cc, #fff),
                   linear-gradient(180deg, #fff 0%, #fff7cc 100%);
       min-height: 100svh;
       display: grid;
@@ -30,149 +34,220 @@
     .card {
       width: min(720px, 92vw);
       background: var(--white);
-      border-radius: 20px;
-      box-shadow: 0 12px 24px rgba(0,0,0,.08);
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.1);
       overflow: hidden;
-      border: 3px solid var(--yellow);
+      border: 4px solid var(--yellow);
+      position: relative;
     }
 
     header {
-      background: linear-gradient(180deg, var(--yellow) 0%, var(--yellow-strong) 100%);
+      background: linear-gradient(135deg, var(--yellow) 0%, var(--yellow-strong) 100%);
       color: #5b4100;
-      padding: 18px 20px;
+      padding: 20px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-    }
-    header h1 {
-      font-size: 20px;
-      margin: 0;
-      letter-spacing: .5px;
+      border-bottom: 2px solid rgba(0,0,0,0.05);
     }
 
-    .actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    header h1 {
+      font-size: 22px;
+      margin: 0;
+      letter-spacing: 1px;
+      font-weight: 800;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.4);
     }
+
+    .actions { display: flex; align-items: center; gap: 10px; }
 
     button.restart {
       appearance: none;
       border: none;
       background: #fff;
       color: #7a5a00;
-      border-radius: 999px;
-      padding: 10px 16px;
+      border-radius: 99px;
+      padding: 10px 20px;
       font-weight: 700;
-      box-shadow: 0 3px 0 rgba(0,0,0,.08);
+      font-size: 14px;
+      box-shadow: 0 4px 0 rgba(0,0,0,.1);
       cursor: pointer;
-      transition: transform .05s ease, box-shadow .05s ease;
-      border: 2px solid rgba(0,0,0,0.05);
+      transition: all .15s ease;
+      border: 1px solid rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    button.restart:active { transform: translateY(1px); box-shadow: 0 2px 0 rgba(0,0,0,.08);} 
+    button.restart:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,.1); }
+    button.restart:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.1); }
 
-    main { padding: 18px 20px 24px; }
+    main { padding: 24px; }
 
     .hint {
-      margin: 0 0 14px;
+      margin: 0 0 20px;
       color: #6b6b6b;
-      font-size: 14px;
+      font-size: 15px;
+      line-height: 1.5;
+      text-align: center;
+      background: #fff9e6;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px dashed var(--yellow-dark);
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
+      gap: 16px;
+    }
+
+    @media (max-width: 500px) {
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     }
 
     .tile {
       position: relative;
       aspect-ratio: 1 / 1;
-      border-radius: 12px;
+      border-radius: 16px;
       background: var(--yellow);
       display: grid;
       place-items: center;
       cursor: pointer;
       user-select: none;
-      transition: transform .12s ease, box-shadow .12s ease, background .2s ease;
-      box-shadow: 0 6px 14px rgba(0,0,0,.08);
-      border: 2px solid rgba(0,0,0,.06);
-      overflow: hidden;
+      transition: transform .2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .2s ease;
+      box-shadow: 0 8px 16px rgba(0,0,0,.08);
+      border: 2px solid rgba(255,255,255,0.4);
+      overflow: visible; /* 让徽章可以稍微突出一点 */
     }
-    .tile:hover { transform: translateY(-2px); box-shadow: 0 10px 18px rgba(0,0,0,.10); }
-    .tile.revealed { cursor: default; filter: none; }
 
+    .tile:hover { 
+      transform: translateY(-4px) scale(1.02); 
+      box-shadow: 0 12px 24px rgba(0,0,0,.12); 
+      z-index: 2;
+    }
+    
+    .tile:active { transform: scale(0.95); }
+    .tile.revealed { cursor: default; transform: none; box-shadow: 0 4px 8px rgba(0,0,0,.05); }
+
+    /* 覆盖层样式优化 */
     .cover {
       position: absolute;
       inset: 0;
       background:
-        repeating-linear-gradient(135deg, rgba(255,255,255,.7) 0 8px, rgba(255,255,255,.5) 8px 16px),
-        linear-gradient(180deg, var(--yellow) 0%, var(--yellow-strong) 100%);
+        repeating-linear-gradient(135deg, rgba(255,255,255,.6) 0 4px, rgba(255,255,255,.3) 4px 8px),
+        linear-gradient(135deg, var(--yellow) 0%, var(--yellow-strong) 100%);
       display: grid;
       place-items: center;
       color: #5b4100;
       font-weight: 800;
-      letter-spacing: .5px;
+      font-size: 18px;
+      letter-spacing: 1px;
       text-shadow: 0 1px 0 rgba(255,255,255,.6);
-      transition: opacity .25s ease;
+      transition: opacity .3s ease, transform .3s ease;
+      border-radius: 14px;
+      backdrop-filter: blur(2px);
     }
 
-    .tile.revealed .cover { opacity: 0; pointer-events: none; }
+    .tile.revealed .cover { 
+      opacity: 0; 
+      pointer-events: none; 
+      transform: scale(0.8);
+    }
 
     .result {
       position: relative;
-      z-index: 0;
-      font-weight: 800;
-      font-size: clamp(18px, 3.5vw, 28px);
-      color: var(--white);
-      text-shadow: 0 2px 6px rgba(0,0,0,.25);
+      z-index: 1;
+      font-weight: 900;
+      font-size: clamp(16px, 4vw, 24px);
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,.2);
+      text-align: center;
+      padding: 0 4px;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .tile.win { background: #ffdf70; }
-    .tile.lose { background: #fff1b8; }
+    @keyframes popIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
 
+    .tile.win { background: linear-gradient(135deg, #ffdf70, #ffc107); border-color: #fff; }
+    .tile.lose { background: linear-gradient(135deg, #fff1b8, #ffe082); border-color: #fff; }
+    
+    .tile.win .result { color: #d32f2f; text-shadow: 0 1px 0 rgba(255,255,255,0.5); }
+    .tile.lose .result { color: #757575; text-shadow: 0 1px 0 rgba(255,255,255,0.5); }
+
+    /* 🌟 重点修改：编号徽章样式 */
     .badge {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: #ffffffcc;
-      color: #7a5a00;
-      font-size: 12px;
-      font-weight: 700;
-      border: 1px solid rgba(0,0,0,.06);
+      top: -8px;   /* 稍微向上提一点，制造悬浮感 */
+      right: -8px;  /* 稍微向右提一点 */
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      background: var(--badge-bg);
+      backdrop-filter: blur(8px); /* 磨砂玻璃效果 */
+      -webkit-backdrop-filter: blur(8px);
+      
+      color: var(--badge-text);
+      font-size: 13px;
+      font-weight: 800;
+      border-radius: 50%; /* 完美的圆形 */
+      
+      border: 2px solid var(--badge-border);
+      box-shadow: var(--badge-shadow);
+      
+      z-index: 10;
+      transition: all 0.2s ease;
+      cursor: default;
+    }
+
+    /* 鼠标悬停在方块上时，徽章变大并高亮 */
+    .tile:hover .badge {
+      transform: scale(1.15) rotate(-5deg);
+      background: #fff;
+      box-shadow: 0 6px 16px rgba(91, 65, 0, 0.2);
+      color: var(--yellow-dark);
+      border-color: var(--yellow);
     }
 
     .footer {
-      margin-top: 14px;
-      font-size: 12px;
+      margin-top: 20px;
+      font-size: 13px;
       color: #9b8a4a;
       text-align: center;
+      opacity: 0.8;
     }
   </style>
 </head>
 <body>
   <div class="card">
     <header>
-      <h1>刮刮乐小游戏</h1>
+      <h1>🎁 幸运刮刮乐</h1>
       <div class="actions">
-        <button class="restart" id="restartBtn" aria-label="重新开始">🔄 重新开始</button>
+        <button class="restart" id="restartBtn" aria-label="重新开始">
+          <span>🔄</span> 重来
+        </button>
       </div>
     </header>
 
     <main>
-      <p class="hint">共有 8 个方块，本轮只有 <strong>1</strong> 个中奖位置。点击任意方块揭晓结果，点击「重新开始」可随机刷新中奖位置。</p>
+      <p class="hint">共有 <strong>8</strong> 个方块，本轮只有 <strong>1</strong> 个大奖！<br>点击任意方块揭晓运气，祝你好运！✨</p>
+      
       <div class="grid" id="grid" role="grid" aria-label="刮刮乐方块">
         <!-- Tiles will be injected by JS -->
       </div>
-      <div class="footer">配色以黄色和白色为主 · 祝你好运 🍀</div>
+      
+      <div class="footer">Made with ❤️ · 黄色主题版</div>
     </main>
   </div>
 
   <script>
-    const GRID_SIZE = 8; // 8 tiles
+    const GRID_SIZE = 8;
     let winningIndex = -1;
     let revealedCount = 0;
 
@@ -191,14 +266,17 @@
       tile.setAttribute('aria-label', `方块 ${i + 1}`);
       tile.type = 'button';
 
+      // 覆盖层
       const cover = document.createElement('div');
       cover.className = 'cover';
-      cover.textContent = '刮一刮';
+      cover.textContent = '刮开'; // 缩短文字更美观
 
+      // 编号徽章
       const badge = document.createElement('div');
       badge.className = 'badge';
-      badge.textContent = `#${i + 1}`;
+      badge.textContent = i + 1; // 只显示数字，更简洁
 
+      // 结果区域
       const result = document.createElement('div');
       result.className = 'result';
       result.textContent = '';
@@ -225,18 +303,33 @@
 
       const result = tile.querySelector('.result');
       const isWin = index === winningIndex;
-      result.textContent = isWin ? '🎉 中奖了!' : '未中奖';
+      
+      // 添加一点表情符号让结果更生动
+      result.textContent = isWin ? '🏆 中奖!' : '😅 没中';
+      
       tile.classList.add(isWin ? 'win' : 'lose');
-
-      // Set accessible label after reveal
       tile.setAttribute('aria-label', `方块 ${index + 1}，${isWin ? '中奖' : '未中'}`);
 
       revealedCount++;
+      
+      // 如果是中奖，加一个额外的庆祝动画类（可选）
+      if(isWin) {
+        tile.style.animation = "popIn 0.5s ease";
+      }
     }
 
     function restart() {
-      shuffleWin();
-      renderGrid();
+      // 添加一个简单的淡出再渲染的效果
+      grid.style.opacity = '0';
+      grid.style.transform = 'scale(0.95)';
+      grid.style.transition = 'all 0.2s ease';
+      
+      setTimeout(() => {
+        shuffleWin();
+        renderGrid();
+        grid.style.opacity = '1';
+        grid.style.transform = 'scale(1)';
+      }, 200);
     }
 
     restartBtn.addEventListener('click', restart);
